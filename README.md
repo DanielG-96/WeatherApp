@@ -1,6 +1,6 @@
 # WeatherApp
 
-Weather app for Android using the Dark Sky API.
+Weather app for Android using the <a href="https://darksky.net">Dark Sky API</a>.
 
 Still a work in progress so expect bugs!
 
@@ -14,6 +14,6 @@ Target/Compile API: 8.0 (O)
 
 # Resources
 
-<a href="square.github.io/retrofit">Retrofit library</a>
+<a href="https://square.github.io/retrofit">Retrofit library</a>
 
 <a href="https://icons8.com/icon/6243/Cloud">Cloud and other icons by Icons8</a>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <drawable name="ic_sun">@drawable/ic_wb_sunny_black_24dp</drawable>
+    <drawable name="ic_today">@drawable/ic_today_black_24dp</drawable>
+    <drawable name="ic_settings">@drawable/ic_settings_black_24dp</drawable>
+    <drawable name="ic_info">@drawable/ic_info_black_24dp</drawable>
+</resources>

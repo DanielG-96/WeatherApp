@@ -1,0 +1,75 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/layout_fragment_main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.danielg.weatherapp.WeatherCurrentFragment">
+
+    <ProgressBar
+        android:id="@+id/progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:visibility="invisible"
+        />
+
+    <RelativeLayout
+        android:id="@+id/layout_details_main"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
+        android:layout_centerHorizontal="true">
+
+        <ImageView
+            android:id="@+id/image_weather_icon"
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:layout_marginTop="32dp"
+            android:layout_marginStart="32dp"
+            android:layout_marginBottom="32dp"
+            />
+
+        <TextView
+            android:id="@+id/text_weather_temperature"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="36sp"
+            android:layout_marginTop="32dp"
+            android:layout_marginStart="16dp"
+            android:layout_toEndOf="@id/image_weather_icon"
+            />
+
+        <TextView
+            android:id="@+id/text_weather_summary"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_toEndOf="@id/image_weather_icon"
+            android:layout_below="@id/text_weather_temperature"
+            />
+
+        <TextView
+            android:id="@+id/text_weather_humidity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_toEndOf="@id/image_weather_icon"
+            android:layout_below="@id/text_weather_summary"
+            />
+
+    </RelativeLayout>
+
+    <Button android:id="@+id/button_refresh"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/layout_details_main"
+        android:layout_centerInParent="true"
+        android:text="@string/button_refresh"
+        />
+
+</RelativeLayout>

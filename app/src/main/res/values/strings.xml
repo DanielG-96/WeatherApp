@@ -2,7 +2,7 @@
     <string name="app_name">Weather</string>
     <string name="text_latitude">Latitude</string>
     <string name="text_longitude">Longitude</string>
-    <string name="button_refresh">Refresh</string>
+    <string name="text_refresh">Refresh</string>
 
     <string name="text_menu_current">Current Forecast</string>
     <string name="text_menu_daily">Daily Forecast</string>

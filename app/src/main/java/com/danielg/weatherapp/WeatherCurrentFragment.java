@@ -3,7 +3,6 @@ package com.danielg.weatherapp;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -13,11 +12,13 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -26,8 +27,6 @@ import com.danielg.weatherapp.data.WeatherData;
 import com.danielg.weatherapp.data.WeatherService;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 
 import java.util.Locale;
 
@@ -45,9 +44,8 @@ public class WeatherCurrentFragment extends Fragment {
     private FusedLocationProviderClient mFusedLocationClient;
     private Context mActivity;
 
-    private Button buttonRefresh;
     private ImageView imageWeatherIcon;
-    private TextView textTemperature, textSummary, textHumidity;
+    private TextView textTemperature, textSummary, textHumidity, textFeelsLike;
     private ProgressBar progressBar;
 
     private Animation animFadeOut;
@@ -68,23 +66,32 @@ public class WeatherCurrentFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = LayoutInflater.from(container.getContext()).inflate(R.layout.fragment_weather_current, container, false);
+        setHasOptionsMenu(true);
 
         imageWeatherIcon = view.findViewById(R.id.image_weather_icon);
         textTemperature = view.findViewById(R.id.text_weather_temperature);
         textSummary = view.findViewById(R.id.text_weather_summary);
         textHumidity = view.findViewById(R.id.text_weather_humidity);
+        textFeelsLike = view.findViewById(R.id.text_weather_feels_like);
         progressBar = view.findViewById(R.id.progress);
 
-        buttonRefresh = view.findViewById(R.id.button_refresh);
-        buttonRefresh.setOnClickListener(new View.OnClickListener() {
+        animFadeOut = AnimationUtils.loadAnimation(mActivity, R.anim.fade_out);
+        animFadeOut.setAnimationListener(new Animation.AnimationListener() {
             @Override
-            public void onClick(View view) {
-                showProgress();
-                refreshWeather();
+            public void onAnimationStart(Animation animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                progressBar.setVisibility(View.INVISIBLE);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
             }
         });
-
-        animFadeOut = AnimationUtils.loadAnimation(mActivity, R.anim.fade_out);
 
         return view;
     }
@@ -107,27 +114,37 @@ public class WeatherCurrentFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.top_menu, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_refresh:
+                refreshWeather();
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
     private void requestCoarseLocation() {
         if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             Log.d(TAG, "Permission has not yet been granted, requesting now");
             requestLocationPermission();
         } else {
-            mFusedLocationClient.getLastLocation().addOnFailureListener(getActivity(), new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    Snackbar.make(getActivity().findViewById(R.id.coordinator_layout),
-                            "Could not find current location",
-                            Snackbar.LENGTH_SHORT).show();
-                    Log.e(TAG, e.getMessage());
-                }
+            mFusedLocationClient.getLastLocation().addOnFailureListener(getActivity(), e -> {
+                Snackbar.make(getActivity().findViewById(R.id.coordinator_layout),
+                        "Could not find current location",
+                        Snackbar.LENGTH_SHORT).show();
+                Log.e(TAG, e.getMessage());
             });
-            mFusedLocationClient.getLastLocation().addOnSuccessListener(getActivity(), new OnSuccessListener<Location>() {
-                @Override
-                public void onSuccess(Location location) {
-                    latitude = location.getLatitude();
-                    longitude = location.getLongitude();
-                    refreshWeather();
-                }
+            mFusedLocationClient.getLastLocation().addOnSuccessListener(getActivity(), location -> {
+                latitude = location.getLatitude();
+                longitude = location.getLongitude();
+                refreshWeather();
             });
         }
 
@@ -142,13 +159,10 @@ public class WeatherCurrentFragment extends Fragment {
             Log.d(TAG, "Prompting user permission for location");
             Snackbar.make(getActivity().findViewById(R.id.coordinator_layout),
                     "Allow permission to get location.",
-                    Snackbar.LENGTH_INDEFINITE).setAction("OK", new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    // Request the permission
-                    requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-                            PERMISSION_REQUEST_LOCATION);
-                }
+                    Snackbar.LENGTH_INDEFINITE).setAction("OK", view -> {
+                // Request the permission
+                requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                        PERMISSION_REQUEST_LOCATION);
             }).show();
         } else {
             // For older versions of Android (5.1 and lower)?
@@ -188,8 +202,9 @@ public class WeatherCurrentFragment extends Fragment {
                         int imageId = getResources().getIdentifier(iconRes, "drawable", getActivity().getPackageName());
                         imageWeatherIcon.setImageResource(imageId);
                         textTemperature.setText(String.format(Locale.getDefault(), "%1.2f", data.getCurrently().getTemperature()));
+                        textFeelsLike.setText(String.format(Locale.getDefault(), "Feels like: %1.2f", data.getCurrently().getApparentTemperature()));
                         textSummary.setText(data.getCurrently().getSummary());
-                        textHumidity.setText(String.format(Locale.getDefault(), "%d%%", Utilities.doubleToPercent(data.getCurrently().getHumidity())));
+                        textHumidity.setText(String.format(Locale.getDefault(), "Humidity: %d%%", Utilities.doubleToPercent(data.getCurrently().getHumidity())));
                     }
                 }
             }

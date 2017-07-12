@@ -15,7 +15,7 @@
 
     <RelativeLayout
         android:id="@+id/layout_details_main"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:layout_marginBottom="16dp"
@@ -34,42 +34,57 @@
             android:id="@+id/text_weather_temperature"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="36sp"
             android:layout_marginTop="32dp"
-            android:layout_marginStart="16dp"
+            android:layout_marginEnd="32dp"
+            android:layout_alignParentEnd="true"
             android:layout_toEndOf="@id/image_weather_icon"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+            android:textAlignment="textEnd"
+            android:textSize="40sp"
+            />
+
+        <TextView
+            android:id="@+id/text_weather_feels_like"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/text_weather_temperature"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="32dp"
+            android:layout_alignParentEnd="true"
+            android:layout_toEndOf="@id/image_weather_icon"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+            android:textAlignment="textEnd"
+            android:textSize="24sp"
             />
 
         <TextView
             android:id="@+id/text_weather_summary"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_below="@id/image_weather_icon"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="32dp"
+            android:layout_marginBottom="32dp"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
             android:textSize="20sp"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="8dp"
-            android:layout_toEndOf="@id/image_weather_icon"
-            android:layout_below="@id/text_weather_temperature"
             />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/layout_details_additional"
+        android:layout_below="@id/layout_details_main"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
         <TextView
             android:id="@+id/text_weather_humidity"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="20sp"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="8dp"
-            android:layout_toEndOf="@id/image_weather_icon"
-            android:layout_below="@id/text_weather_summary"
-            />
+            android:layout_marginStart="32dp"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+            android:textSize="20sp" />
 
     </RelativeLayout>
-
-    <Button android:id="@+id/button_refresh"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/layout_details_main"
-        android:layout_centerInParent="true"
-        android:text="@string/button_refresh"
-        />
 
 </RelativeLayout>

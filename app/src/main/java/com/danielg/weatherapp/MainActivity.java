@@ -9,6 +9,7 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
@@ -44,6 +45,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
+
+        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 
         getSupportFragmentManager()
                 .beginTransaction()
@@ -87,6 +90,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 break;
             case R.id.menu_settings:
                 Log.d(TAG, "Pressed: Settings item");
+                getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.frame_content, new AppSettingsFragment())
+                        .commit();
                 break;
             case R.id.menu_about:
                 Log.d(TAG, "Pressed: About item");

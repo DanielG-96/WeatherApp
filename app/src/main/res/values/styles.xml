@@ -6,6 +6,12 @@
         <item name="colorAccent">@color/colorAccent</item>
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+        <item name="preferenceTheme">@style/PreferenceThemeOverlay.v14.Material</item>
+        <item name="alertDialogTheme">@style/AppAlertDialogContent</item>
+    </style>
+
+    <style name="AppAlertDialogContent" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="colorAccent">@color/colorAccent</item>
     </style>
 
 </resources>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <android.support.v7.preference.Preference
+        android:title="@string/text_pref_curr_location"
+        android:selectable="false" />
+    <android.support.v7.preference.SwitchPreferenceCompat
+        android:key="pref_auto_location"
+        android:title="@string/text_pref_auto_location"
+        android:disableDependentsState="true"
+        android:summaryOff="@string/text_pref_summary_auto_location_off"
+        android:summaryOn="@string/text_pref_summary_auto_location_on"
+        android:defaultValue="true" />
+    <android.support.v7.preference.ListPreference
+        android:key="pref_units"
+        android:title="@string/text_pref_title_unit"
+        android:dialogTitle="@string/text_pref_title_unit"
+        android:entries="@array/array_pref_unit"
+        android:entryValues="@array/array_pref_unit_values"
+        android:defaultValue="@string/text_pref_unit_default" />
+    <android.support.v7.preference.EditTextPreference
+        android:key="pref_api_key"
+        android:title="@string/text_pref_title_api_key"
+        android:dialogTitle="@string/text_pref_title_api_key" />
+</android.support.v7.preference.PreferenceScreen>

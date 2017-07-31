@@ -12,7 +12,7 @@
             />
     </group>
     <group android:id="@+id/bottom_menu"
-        android:checkableBehavior="none">
+        android:checkableBehavior="single">
         <item android:id="@+id/menu_settings"
             android:title="@string/text_menu_settings"
             android:icon="@drawable/ic_settings"

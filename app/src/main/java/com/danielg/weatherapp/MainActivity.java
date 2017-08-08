@@ -26,11 +26,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Toolbar toolbar = findViewById(R.id.toolbar_main);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main);
         setSupportActionBar(toolbar);
 
-        mDrawerLayout = findViewById(R.id.layout_drawer);
-        mNavigationView = findViewById(R.id.left_drawer);
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.layout_drawer);
+        mNavigationView = (NavigationView) findViewById(R.id.left_drawer);
         mNavigationView.setCheckedItem(R.id.menu_current);
 
         mNavigationView.setNavigationItemSelectedListener(this);

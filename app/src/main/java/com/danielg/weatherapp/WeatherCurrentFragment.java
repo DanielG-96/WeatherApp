@@ -38,8 +38,11 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResponse;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.location.SettingsClient;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.gson.Gson;
 
 import java.util.Locale;
@@ -65,7 +68,7 @@ public class WeatherCurrentFragment extends Fragment {
 
     private Context mContext;
 
-    private boolean mAutoUpdateLocation;
+    private boolean mDoLocationUpdates;
     private String mUnits, mAPIKey;
     private FusedLocationProviderClient mFusedLocationClient;
     private LocationCallback mLocationCallback;
@@ -93,6 +96,7 @@ public class WeatherCurrentFragment extends Fragment {
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(mContext);
         mSettingsClient = LocationServices.getSettingsClient(mContext);
+        mDoLocationUpdates = false;
 
         createLocationCallback();
         createLocationRequest();
@@ -106,12 +110,12 @@ public class WeatherCurrentFragment extends Fragment {
         View view = LayoutInflater.from(container.getContext()).inflate(R.layout.fragment_weather_current, container, false);
         setHasOptionsMenu(true);
 
-        imageWeatherIcon = view.findViewById(R.id.image_weather_icon);
-        textTemperature = view.findViewById(R.id.text_weather_temperature);
-        textSummary = view.findViewById(R.id.text_weather_summary);
-        textHumidity = view.findViewById(R.id.text_weather_humidity);
-        textFeelsLike = view.findViewById(R.id.text_weather_feels_like);
-        progressBar = view.findViewById(R.id.progress);
+        imageWeatherIcon = (ImageView) view.findViewById(R.id.image_weather_icon);
+        textTemperature = (TextView) view.findViewById(R.id.text_weather_temperature);
+        textSummary = (TextView) view.findViewById(R.id.text_weather_summary);
+        textHumidity = (TextView) view.findViewById(R.id.text_weather_humidity);
+        textFeelsLike = (TextView) view.findViewById(R.id.text_weather_feels_like);
+        progressBar = (ProgressBar) view.findViewById(R.id.progress);
 
         animFadeOut = AnimationUtils.loadAnimation(mContext, R.anim.fade_out);
         animFadeOut.setAnimationListener(new Animation.AnimationListener() {
@@ -131,14 +135,14 @@ public class WeatherCurrentFragment extends Fragment {
             }
         });
 
-        // updateValuesFromBundle(savedInstanceState);
+        updateValuesFromBundle(savedInstanceState);
         return view;
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        if (mAutoUpdateLocation && checkPermissions())
+        if (mDoLocationUpdates && checkPermissions())
             startLocationUpdates();
         else if (!checkPermissions()) {
             requestLocationPermission();
@@ -168,10 +172,8 @@ public class WeatherCurrentFragment extends Fragment {
                     startLocationUpdates();
                 } else {
                     Log.i(TAG, "Permission has been denied, user will have to enter location manually");
-                    Snackbar.make(getActivity().findViewById(R.id.coordinator_layout),
-                            "Location permission denied.",
-                            Snackbar.LENGTH_SHORT).show();
                 }
+                break;
             }
         }
     }
@@ -192,7 +194,6 @@ public class WeatherCurrentFragment extends Fragment {
         return super.onOptionsItemSelected(item);
     }
 
-    // TODO Work something out here
     private void updateValuesFromBundle(Bundle savedInstanceState) {
         if (savedInstanceState != null) {
             if (savedInstanceState.keySet().contains(KEY_LOCATION)) {
@@ -205,11 +206,11 @@ public class WeatherCurrentFragment extends Fragment {
         }
     }
 
-    // TODO And here...
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        // outState.putParcelable(KEY_LOCATION, mCurrentLocation);
-        // super.onSaveInstanceState(outState);
+        if (mCurrentLocation != null)
+            outState.putParcelable(KEY_LOCATION, mCurrentLocation);
+        super.onSaveInstanceState(outState);
     }
 
     private void saveWeatherData() {
@@ -223,11 +224,6 @@ public class WeatherCurrentFragment extends Fragment {
 
     private void loadPreferences(Context context) {
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
-        mAutoUpdateLocation = pref.getBoolean(AppSettingsFragment.KEY_GET_AUTO_LOCATION, true);
-        if (!mAutoUpdateLocation) {
-            String json = pref.getString(AppSettingsFragment.KEY_CURRENT_MANUAL_LOCATION, "");
-            mCurrentLocation = new Gson().fromJson(json, Location.class);
-        }
         String unit = pref.getString(AppSettingsFragment.KEY_UNITS, "");
         switch (unit) {
             case "Metric (Default)":
@@ -237,7 +233,7 @@ public class WeatherCurrentFragment extends Fragment {
                 mUnits = "us";
                 break;
             default:
-                Log.d(TAG, "Could not get unit preference for some reason, defaulting to Metric (SI)");
+                Log.i(TAG, "Could not get unit preference for some reason, defaulting to Metric (SI)");
                 mUnits = "si";
                 break;
         }
@@ -271,33 +267,39 @@ public class WeatherCurrentFragment extends Fragment {
 
     private void startLocationUpdates() {
         mSettingsClient.checkLocationSettings(mLocationSettingsRequest)
-                .addOnSuccessListener(getActivity(), locationSettingsResponse -> {
-                    Log.i(TAG, "All location settings are satisfied");
-                    mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback, Looper.myLooper());
+                .addOnSuccessListener(getActivity(), new OnSuccessListener<LocationSettingsResponse>() {
+                    @Override
+                    public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
+                        Log.i(TAG, "All location settings are satisfied");
+                        mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback, Looper.myLooper());
+                    }
                 })
-                .addOnFailureListener(getActivity(), e -> {
-                    int statusCode = ((ApiException) e).getStatusCode();
-                    switch (statusCode) {
-                        case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                            Log.i(TAG, "Location settings not satisfied, attempting to upgrade settings.");
-                            try {
-                                ResolvableApiException rae = (ResolvableApiException) e;
-                                rae.startResolutionForResult(getActivity(), REQUEST_CHECK_SETTINGS);
-                            } catch (IntentSender.SendIntentException sie) {
-                                Log.i(TAG, "PendingIntent unable to execute result.");
-                            }
-                            break;
-                        case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                            String errorMessage = "Location settings are inadequate and cannot be fixed here, change in settings.";
-                            Log.e(TAG, errorMessage);
-                            Toast.makeText(mContext, errorMessage, Toast.LENGTH_SHORT).show();
-                            mAutoUpdateLocation = false;
+                .addOnFailureListener(getActivity(), new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        int statusCode = ((ApiException) e).getStatusCode();
+                        switch (statusCode) {
+                            case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                                Log.i(TAG, "Location settings not satisfied, attempting to upgrade settings.");
+                                try {
+                                    ResolvableApiException rae = (ResolvableApiException) e;
+                                    rae.startResolutionForResult(WeatherCurrentFragment.this.getActivity(), REQUEST_CHECK_SETTINGS);
+                                } catch (IntentSender.SendIntentException sie) {
+                                    Log.i(TAG, "PendingIntent unable to execute result.");
+                                }
+                                break;
+                            case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                                String errorMessage = "Location settings are inadequate and cannot be fixed here, change in settings.";
+                                Log.e(TAG, errorMessage);
+                                Toast.makeText(mContext, errorMessage, Toast.LENGTH_SHORT).show();
+                                mDoLocationUpdates = false;
+                        }
                     }
                 });
     }
 
     private void pauseLocationUpdates() {
-        if (!mAutoUpdateLocation)
+        if (!mDoLocationUpdates)
             return;
 
         mFusedLocationClient.removeLocationUpdates(mLocationCallback);
@@ -309,28 +311,9 @@ public class WeatherCurrentFragment extends Fragment {
     }
 
     private void requestLocationPermission() {
-        if (ActivityCompat.shouldShowRequestPermissionRationale(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION)) {
-            // Display rationale explaining why app needs permission
-            Log.d(TAG, "Displaying permission rationale to user");
-            Snackbar.make(getActivity().findViewById(R.id.coordinator_layout),
-                    "Location is needed for core functionality", Snackbar.LENGTH_INDEFINITE)
-                    .setAction("OK", view -> {
-                        // Request the permission
-                        requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                                REQUEST_PERMISSION_LOCATION);
-                    }).show();
-        } else {
-            // Display snack bar detailing to user why location permission is needed
-            // Otherwise, they can enter the location manually
-            Log.d(TAG, "Prompting user permission for location");
-            Snackbar.make(getActivity().findViewById(R.id.coordinator_layout),
-                    "Allow permission to get location.",
-                    Snackbar.LENGTH_INDEFINITE).setAction("OK", view -> {
-                // Request the permission
-                requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                        REQUEST_PERMISSION_LOCATION);
-            }).show();
-        }
+        Log.i(TAG, "Prompting user permission for location");
+        requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                REQUEST_PERMISSION_LOCATION);
     }
 
     private void refreshWeather() {
@@ -378,8 +361,11 @@ public class WeatherCurrentFragment extends Fragment {
                 Snackbar.make(getActivity().findViewById(R.id.coordinator_layout),
                         "No API key specified",
                         Snackbar.LENGTH_SHORT)
-                        .setAction("Settings", view -> {
+                        .setAction("Settings", new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
 
+                            }
                         })
                         .show();
             }
